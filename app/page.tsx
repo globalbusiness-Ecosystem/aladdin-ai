@@ -11,12 +11,12 @@ import { ChatInput } from '@/components/chat/chat-input';
 import { AttachmentSheet } from '@/components/chat/attachment-sheet';
 import { SmartRecommendations } from '@/components/chat/smart-recommendations';
 import { useI18n } from '@/contexts/i18n-context';
-import { 
-  getUserProfile, 
-  updateUserInterests, 
+import {
+  getUserProfile,
+  updateUserInterests,
   recordAppView,
   getConversationMemory,
-  generateRecommendations 
+  generateRecommendations
 } from '@/lib/aladdin-memory';
 
 export default function Home() {
@@ -33,7 +33,6 @@ export default function Home() {
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Listen for chat navigation event
   useEffect(() => {
     const handleNavigateToChat = (event: any) => {
       setActiveTab('chat');
@@ -45,7 +44,6 @@ export default function Home() {
     return () => window.removeEventListener('navigateToChat', handleNavigateToChat);
   }, []);
 
-  // Load user profile on mount
   useEffect(() => {
     const profile = getUserProfile();
     setUserProfile(profile);
@@ -68,10 +66,10 @@ export default function Home() {
 
   const handleFileSelected = (file: File, type: 'image' | 'document' | 'location') => {
     const reader = new FileReader();
-    
+
     reader.onload = (e) => {
       const data = e.target?.result as string;
-      
+
       if (type === 'image') {
         const message = {
           text: 'Shared an image',
@@ -128,7 +126,6 @@ export default function Home() {
       setMessages(prev => [...prev, { text: userMessage, sender: 'user' }]);
       setIsLoading(true);
 
-      // Extract keywords for profile update
       const keywords = userMessage.toLowerCase().split(/\s+/).filter(w => w.length > 3);
       updateUserInterests(keywords);
 
@@ -153,9 +150,9 @@ export default function Home() {
         setMessages(prev => [...prev, { text: data.text, sender: 'ai' }]);
       } catch (error) {
         console.error('Chat error:', error);
-        setMessages(prev => [...prev, { 
-          text: 'I apologize, I am having trouble connecting. Please try again.', 
-          sender: 'ai' 
+        setMessages(prev => [...prev, {
+          text: 'I apologize, I am having trouble connecting. Please try again.',
+          sender: 'ai'
         }]);
       } finally {
         setIsLoading(false);
@@ -174,33 +171,28 @@ export default function Home() {
   ];
 
   const filterCategories = ['All', 'Real Estate', 'Automotive', 'Trade', 'Education', 'Shopping', 'Services'];
-  const filteredApps = selectedCategory === 'All' 
-    ? appsData 
+  const filteredApps = selectedCategory === 'All'
+    ? appsData
     : appsData.filter(app => app.category === selectedCategory);
 
   return (
     <div className={`flex h-screen flex-col bg-[#0A0A0A] text-foreground ${isRTL ? 'rtl' : 'ltr'}`}>
-      {/* Chat Header */}
-      <ChatHeader 
-        onMenuOpen={() => setIsSidebarOpen(true)} 
+      <ChatHeader
+        onMenuOpen={() => setIsSidebarOpen(true)}
         onExploreClick={() => setActiveTab('explore')}
         onShowConversations={() => setIsSidebarOpen(true)}
-        userInitial="A" 
+        userInitial="A"
       />
 
-      {/* Conversations Sidebar */}
       <ConversationsSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Main Content */}
       <main className="flex-1 overflow-hidden mt-20 mb-20 flex flex-col bg-gradient-to-br from-[#0A0A0A] via-[#0F0F0F] to-[#0A0A0A]">
         {activeTab === 'chat' ? (
           <div className="flex flex-col h-full">
-            {/* Chat Messages */}
             <ChatMessages messages={messages} isLoading={isLoading} />
 
-            {/* Smart Recommendations */}
             {inputValue && (
-              <SmartRecommendations 
+              <SmartRecommendations
                 userMessage={inputValue}
                 onSelectRecommendation={(appName) => {
                   setPrefillMessage(`Tell me more about ${appName}`);
@@ -209,15 +201,12 @@ export default function Home() {
               />
             )}
 
-            {/* Chat Input */}
             <ChatInput
               inputValue={inputValue}
               onInputChange={setInputValue}
               onSend={() => {
-                setInputValue(prefillMessage);
-                setPrefillMessage('');
                 if (!isLoading) {
-                  setTimeout(() => handleSendMessage(), 0);
+                  handleSendMessage();
                 }
               }}
               onMicClick={() => console.log('Mic clicked')}
@@ -228,13 +217,11 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto pb-4 bg-gradient-to-br from-[#0A0A0A] to-[#0F0F0F]">
-            {/* Header */}
             <div className="w-full px-4 py-4 border-b border-[#222222] bg-gradient-to-r from-[#0A0A0A] to-[#0F0F0F]">
               <p className="text-xl font-bold text-[#D4AF37] leading-tight">{t('explore.title')}</p>
               <p className="text-xs text-[#666666] mt-1">{t('explore.subtitle')}</p>
             </div>
 
-            {/* Filter Chips */}
             <div className="w-full overflow-x-auto px-4 py-3 border-b border-[#222222] flex gap-2">
               {filterCategories.map((category) => (
                 <button
@@ -251,7 +238,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* App Cards */}
             <div className="px-4 py-4 space-y-3">
               {filteredApps.map((app, idx) => (
                 <button
@@ -271,30 +257,17 @@ export default function Home() {
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  {/* Icon Square */}
-                  <div 
-                    className="flex-shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br from-[#D4AF37]/20 to-[#A0860F]/10 border border-[#D4AF37]/30 flex items-center justify-center font-bold text-lg flex-col"
-                  >
+                  <div className="flex-shrink-0 w-14 h-14 rounded-lg bg-gradient-to-br from-[#D4AF37]/20 to-[#A0860F]/10 border border-[#D4AF37]/30 flex items-center justify-center font-bold text-lg flex-col">
                     <span>{app.code[0]}</span>
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-base font-bold text-white truncate">
-                      {app.name}
-                    </p>
-                    <p className="text-xs text-[#D4AF37] font-semibold">
-                      {app.category}
-                    </p>
-                    <p className="text-xs text-[#999999] truncate mt-0.5">
-                      {app.description}
-                    </p>
+                    <p className="text-base font-bold text-white truncate">{app.name}</p>
+                    <p className="text-xs text-[#D4AF37] font-semibold">{app.category}</p>
+                    <p className="text-xs text-[#999999] truncate mt-0.5">{app.description}</p>
                   </div>
 
-                  {/* Arrow */}
-                  <div className="flex-shrink-0 text-[#D4AF37] text-lg">
-                    →
-                  </div>
+                  <div className="flex-shrink-0 text-[#D4AF37] text-lg">→</div>
                 </button>
               ))}
             </div>
@@ -302,7 +275,6 @@ export default function Home() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
       <nav className={`fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around bg-gradient-to-t from-[#0A0A0A] to-[#0F0F0F] border-t border-[#222222] px-4 py-3 shadow-2xl ${isRTL ? 'flex-row-reverse' : ''}`}>
         <button
           onClick={() => setActiveTab('chat')}
@@ -328,7 +300,6 @@ export default function Home() {
         </button>
       </nav>
 
-      {/* Attachment Sheet */}
       <AttachmentSheet
         isOpen={isAttachmentSheetOpen}
         onClose={() => setIsAttachmentSheetOpen(false)}
