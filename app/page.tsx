@@ -61,17 +61,17 @@ export default function Home() {
   ];
 
   const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return ${bytes} B;
-    if (bytes < 1024 * 1024) return ${(bytes / 1024).toFixed(1)} KB;
-    return ${(bytes / (1024 * 1024)).toFixed(1)} MB;
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const handleFileSelected = (file: File, type: 'image' | 'document' | 'location') => {
     const reader = new FileReader();
-
+    
     reader.onload = (e) => {
       const data = e.target?.result as string;
-
+      
       if (type === 'image') {
         const message = {
           text: 'Shared an image',
@@ -99,7 +99,7 @@ export default function Home() {
       } else if (type === 'location') {
         try {
           const locationData = JSON.parse(data);
-          const message = 📍 Location: ${locationData.latitude}, ${locationData.longitude} (±${locationData.accuracy}m);
+          const message = `📍 Location: ${locationData.latitude}, ${locationData.longitude} (±${locationData.accuracy}m)`;
           setMessages(prev => [...prev, { text: message, sender: 'user' }]);
           setIsLoading(true);
           setTimeout(() => {
@@ -179,7 +179,7 @@ export default function Home() {
     : appsData.filter(app => app.category === selectedCategory);
 
   return (
-    <div className={flex h-screen flex-col bg-[#0A0A0A] text-foreground ${isRTL ? 'rtl' : 'ltr'}}>
+    <div className={`flex h-screen flex-col bg-[#0A0A0A] text-foreground ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Chat Header */}
       <ChatHeader 
         onMenuOpen={() => setIsSidebarOpen(true)} 
@@ -203,7 +203,7 @@ export default function Home() {
               <SmartRecommendations 
                 userMessage={inputValue}
                 onSelectRecommendation={(appName) => {
-                  setPrefillMessage(Tell me more about ${appName});
+                  setPrefillMessage(`Tell me more about ${appName}`);
                   handleSendMessage();
                 }}
               />
@@ -214,8 +214,10 @@ export default function Home() {
               inputValue={inputValue}
               onInputChange={setInputValue}
               onSend={() => {
+                setInputValue(prefillMessage);
+                setPrefillMessage('');
                 if (!isLoading) {
-                  handleSendMessage();
+                  setTimeout(() => handleSendMessage(), 0);
                 }
               }}
               onMicClick={() => console.log('Mic clicked')}
@@ -255,7 +257,7 @@ export default function Home() {
                 <button
                   key={idx}
                   onClick={() => {
-                    setPrefillMessage(Tell me about ${app.name});
+                    setPrefillMessage(`Tell me about ${app.name}`);
                     setActiveTab('chat');
                   }}
                   className="w-full flex items-center gap-3 p-4 rounded-xl transition-all duration-200 bg-gradient-to-r from-[#141414] to-[#0F0F0F] border border-[#222222] hover:border-[#D4AF37] hover:shadow-lg hover:shadow-[#D4AF37]/10 float-in"
@@ -301,7 +303,7 @@ export default function Home() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className={fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around bg-gradient-to-t from-[#0A0A0A] to-[#0F0F0F] border-t border-[#222222] px-4 py-3 shadow-2xl ${isRTL ? 'flex-row-reverse' : ''}}>
+      <nav className={`fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around bg-gradient-to-t from-[#0A0A0A] to-[#0F0F0F] border-t border-[#222222] px-4 py-3 shadow-2xl ${isRTL ? 'flex-row-reverse' : ''}`}>
         <button
           onClick={() => setActiveTab('chat')}
           className={`flex flex-col items-center gap-1.5 py-2 px-6 rounded-lg transition-all duration-200 ${
