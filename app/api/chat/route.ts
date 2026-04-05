@@ -1,9 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
 const SYSTEM_PROMPT = `You are Aladdin, the intelligent AI Sales Agent for GlobalBusiness Ecosystem by Al-Sahib Group. You are sophisticated, proactive, and sales-oriented while maintaining a professional and helpful demeanor.
 
 ECOSYSTEM APPS (25+ apps in total):
@@ -53,10 +47,15 @@ Remember: You are Aladdin, the ultimate sales partner for Global Business. Every
 
 export async function POST(request: Request) {
   try {
-    const { messages, userProfile, userMessage } = await request.json();
+    const { messages, userProfile } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Invalid messages format", { status: 400 });
+    }
+
+    const apiKey = process.env.GOOGLE_API_KEY;
+    if (!apiKey) {
+      return new Response("API key not configured", { status: 500 });
     }
 
     // Build memory context
@@ -71,37 +70,59 @@ export async function POST(request: Request) {
 `;
     }
 
-    // Convert messages to Anthropic format
-    const anthropicMessages = messages
-      .filter(
-        (msg: { sender: string; text: string }) =>
-          msg.sender === "user" || msg.sender === "ai"
+    // Convert messages to Gemini format
+    const geminiMessages = messages
+      .filter((msg: { sender: string; text: string }) =>
+        msg.sender === "user" || msg.sender === "ai"
       )
       .map((msg: { sender: string; text: string }) => ({
-        role: msg.sender === "user" ? "user" : "assistant",
-        content: msg.text,
+        role: msg.sender === "user" ? "user" : "model",
+        parts: [{ text: msg.text }],
       }));
 
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1024,
-      system: memoryContext + SYSTEM_PROMPT,
-      messages: anthropicMessages,
-    });
-
-    const responseText =
-      response.content[0].type === "text" ? response.content[0].text : "";
-
-    return new Response(JSON.stringify({ 
-      text: responseText,
-      metadata: {
-        hasRecommendation: responseText.includes('recommend') || responseText.includes('suggest'),
-        hasTransactionInfo: responseText.includes('Pi') || responseText.includes('payment'),
+    const response = await fetch(
+      https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey},
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: memoryContext + SYSTEM_PROMPT }],
+          },
+          contents: geminiMessages,
+          generationConfig: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          },
+        }),
       }
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("Gemini API error:", error);
+      return new Response("Gemini API error", { status: 500 });
+    }
+
+    const data = await response.json();
+    const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    return new Response(
+      JSON.stringify({
+        text: responseText,
+        metadata: {
+          hasRecommendation:
+            responseText.includes("recommend") ||
+            responseText.includes("suggest"),
+          hasTransactionInfo:
+            responseText.includes("Pi") || responseText.includes("payment"),
+        },
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Chat API error:", error);
     return new Response("Internal server error", { status: 500 });
