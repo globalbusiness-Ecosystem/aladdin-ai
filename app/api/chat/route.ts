@@ -1,21 +1,23 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
-// السطر ده بيخلي الكود يشتغل بسرعة البرق على Vercel
-export const runtime = "edge";
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // لقط الرسالة مهما كان اسمها في الكود بتاع الصفحة
     const userMessage = body.message || body.prompt;
 
     if (!userMessage) {
-      return NextResponse.json({ error: "الرسالة فارغة" }, { status: 400 });
+      return NextResponse.json({ error: "Empty message" }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash" });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: "API Key missing" }, { status: 500 });
+    }
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    // نستخدم النسخة الأكثر استقراراً لضمان العمل
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const result = await model.generateContent(userMessage);
     const response = await result.response;
@@ -23,9 +25,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ text });
   } catch (error: any) {
-    console.error("Aladdin Error:", error);
+    console.error("Aladdin AI Error:", error);
     return NextResponse.json({ 
-      error: "خطأ في الاتصال", 
+      error: "Connection Failed", 
       details: error.message 
     }, { status: 500 });
   }
