@@ -1,45 +1,32 @@
-// To run this code you need to install the following dependencies:
-// npm install @google/genai mime
-// npm install -D @types/node
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { NextResponse } from "next/server";
 
-import {
-  GoogleGenAI,
-} from '@google/genai';
+export async function POST(req: Request) {
+  try {
+    const { message } = await req.json();
 
-async function main() {
-  const ai = new GoogleGenAI({
-    apiKey: process.env['GEMINI_API_KEY'],
-  });
-  const config = {
-    thinkingConfig: {
-      thinkingLevel: ThinkingLevel.HIGH,
-    },
-  };
-  const model = 'gemini-3-flash-preview';
-  const contents = [
-    {
-      role: 'user',
-      parts: [
-        {
-          text: `INSERT_INPUT_HERE`,
-        },
-      ],
-    },
-  ];
+    // التأكد من وجود الـ API Key
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+    
+    // استخدام موديل Gemini 3 Flash
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-3-flash",
+    });
 
-  const response = await ai.models.generateContentStream({
-    model,
-    config,
-    contents,
-  });
-  let fileIndex = 0;
-  for await (const chunk of response) {
-    if (chunk.text) {
-      console.log(chunk.text);
-    }
+    const chat = model.startChat({
+      history: [],
+      generationConfig: {
+        maxOutputTokens: 1000,
+      },
+    });
+
+    const result = await chat.sendMessage(message);
+    const response = await result.response;
+    const text = response.text();
+
+    return NextResponse.json({ text });
+  } catch (error) {
+    console.error("Error in Aladdin AI:", error);
+    return NextResponse.json({ error: "فشل في الاتصال بعلاء الدين" }, { status: 500 });
   }
 }
-
-main();
-
-
