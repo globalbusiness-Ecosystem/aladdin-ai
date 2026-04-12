@@ -4,13 +4,15 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const userMessage = body.message || body.prompt;
+    const userMessage = body.message;
+
+    if (!userMessage) {
+      return NextResponse.json({ error: "No message provided" }, { status: 400 });
+    }
 
     const apiKey = process.env.GEMINI_API_KEY;
-
-    // حركة ذكية: لو المفتاح مش موجود، الكود هيرد عليك ويقولك "المفتاح ضايع"
     if (!apiKey) {
-      return NextResponse.json({ error: "System Error: API Key is not defined in Vercel settings" }, { status: 500 });
+      return NextResponse.json({ error: "API Key missing in Vercel" }, { status: 500 });
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
@@ -18,10 +20,11 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent(userMessage);
     const response = await result.response;
-    const text = response.text();
+    
+    return NextResponse.json({ text: response.text() });
 
-    return NextResponse.json({ text });
   } catch (error: any) {
-    return NextResponse.json({ error: "Connection error", details: error.message }, { status: 500 });
+    console.error("Aladdin AI Error:", error);
+    return NextResponse.json({ error: "Connection Failed", details: error.message }, { status: 500 });
   }
 }
