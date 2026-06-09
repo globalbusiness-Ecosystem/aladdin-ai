@@ -1,0 +1,286 @@
+'use client';
+
+import React, { createContext, useContext, useState } from 'react';
+
+type Language = 'en' | 'ar' | 'fr' | 'es' | 'zh' | 'hi' | 'tr';
+
+interface I18nContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+  isRTL: boolean;
+}
+
+const translations: Record<Language, Record<string, string>> = {
+  en: {
+    'header.title': 'ALADDIN',
+    'header.subtitle': '• GLOBAL BUSINESS',
+    'header.powered': 'Powered by Pi Network',
+    'sidebar.welcome': 'Welcome User',
+    'sidebar.member': 'GlobalBusiness Member',
+    'sidebar.recentChats': 'Recent Chats',
+    'sidebar.myOrders': 'My Orders',
+    'sidebar.favorites': 'Favorites',
+    'sidebar.myAccount': 'My Account',
+    'sidebar.settings': 'Settings',
+    'category.realEstate': 'Real Estate',
+    'category.realEstateDesc': 'Buy, rent & invest worldwide with Pi',
+    'category.automotive': 'Automotive',
+    'category.automotiveDesc': 'Find your dream car with Pi',
+    'category.trade': 'Trade & Business',
+    'category.tradeDesc': 'Global B2B commerce on Pi',
+    'category.fashion': 'Fashion & Textiles',
+    'category.fashionDesc': 'Premium fashion marketplace',
+    'category.education': 'Education',
+    'category.educationDesc': 'Courses & certificates with Pi',
+    'category.liveChat': 'Live Chat',
+    'category.liveChatDesc': 'Talk to Aladdin now',
+    'nav.chat': 'Chat',
+    'nav.explore': 'Explore',
+    'chat.greeting': 'Hello! I am Aladdin. How can I help you today?',
+    'chat.askAnything': 'Ask me anything',
+    'chat.placeholder': 'Ask Aladdin anything...',
+    'explore.title': 'GlobalBusiness Ecosystem',
+    'explore.subtitle': '25 Pi Apps · Pi Network',
+    'settings.language': 'Language',
+    'settings.currency': 'Currency',
+    'settings.darkMode': 'Dark Mode',
+    'settings.notifications': 'Notifications'
+  },
+  ar: {
+    'header.title': 'علاء الدين',
+    'header.subtitle': '• الأعمال العالمية',
+    'header.powered': 'مدعوم بشبكة باي',
+    'sidebar.welcome': 'مرحبا بك',
+    'sidebar.member': 'عضو في النظام العالمي',
+    'sidebar.recentChats': 'المحادثات الأخيرة',
+    'sidebar.myOrders': 'طلباتي',
+    'sidebar.favorites': 'المفضلة',
+    'sidebar.myAccount': 'حسابي',
+    'sidebar.settings': 'الإعدادات',
+    'category.realEstate': 'العقارات',
+    'category.realEstateDesc': 'شراء وتأجير والاستثمار في جميع أنحاء العالم',
+    'category.automotive': 'السيارات',
+    'category.automotiveDesc': 'ابحث عن سيارتك الحلم',
+    'category.trade': 'التجارة والأعمال',
+    'category.tradeDesc': 'التجارة الإلكترونية B2B العالمية',
+    'category.fashion': 'الأزياء والمنسوجات',
+    'category.fashionDesc': 'سوق الأزياء الفاخرة',
+    'category.education': 'التعليم',
+    'category.educationDesc': 'الدورات والشهادات',
+    'category.liveChat': 'دردشة مباشرة',
+    'category.liveChatDesc': 'تحدث مع علاء الدين الآن',
+    'nav.chat': 'الدردشة',
+    'nav.explore': 'استكشف',
+    'chat.greeting': 'مرحبا! أنا علاء الدين. كيف يمكنني مساعدتك اليوم؟',
+    'chat.askAnything': 'اسأل عن أي شيء',
+    'chat.placeholder': 'اسأل علاء الدين أي شيء...',
+    'explore.title': 'النظام البيئي للأعمال العالمية',
+    'explore.subtitle': '25 تطبيق Pi · شبكة باي',
+    'settings.language': 'اللغة',
+    'settings.currency': 'العملة',
+    'settings.darkMode': 'الوضع الداكن',
+    'settings.notifications': 'الإشعارات'
+  },
+  fr: {
+    'header.title': 'ALADDIN',
+    'header.subtitle': '• AFFAIRES MONDIALES',
+    'header.powered': 'Alimenté par le réseau Pi',
+    'sidebar.welcome': 'Bienvenue',
+    'sidebar.member': 'Membre de GlobalBusiness',
+    'sidebar.recentChats': 'Chats récents',
+    'sidebar.myOrders': 'Mes commandes',
+    'sidebar.favorites': 'Favoris',
+    'sidebar.myAccount': 'Mon compte',
+    'sidebar.settings': 'Paramètres',
+    'category.realEstate': 'Immobilier',
+    'category.realEstateDesc': 'Achetez, louez et investissez dans le monde',
+    'category.automotive': 'Automobile',
+    'category.automotiveDesc': 'Trouvez votre voiture de rêve',
+    'category.trade': 'Commerce & Affaires',
+    'category.tradeDesc': 'Commerce B2B mondial',
+    'category.fashion': 'Mode & Textiles',
+    'category.fashionDesc': 'Marché de la mode premium',
+    'category.education': 'Éducation',
+    'category.educationDesc': 'Cours et certificats',
+    'category.liveChat': 'Chat en direct',
+    'category.liveChatDesc': 'Parlez à Aladdin maintenant',
+    'nav.chat': 'Chat',
+    'nav.explore': 'Explorer',
+    'chat.greeting': 'Bonjour! Je suis Aladdin. Comment puis-je vous aider?',
+    'chat.askAnything': 'Posez-moi n\'importe quelle question',
+    'chat.placeholder': 'Posez une question à Aladdin...',
+    'explore.title': 'Écosystème GlobalBusiness',
+    'explore.subtitle': '25 applications Pi · Réseau Pi',
+    'settings.language': 'Langue',
+    'settings.currency': 'Devise',
+    'settings.darkMode': 'Mode sombre',
+    'settings.notifications': 'Notifications'
+  },
+  es: {
+    'header.title': 'ALADDIN',
+    'header.subtitle': '• NEGOCIOS GLOBALES',
+    'header.powered': 'Impulsado por la red Pi',
+    'sidebar.welcome': 'Bienvenido',
+    'sidebar.member': 'Miembro de GlobalBusiness',
+    'sidebar.recentChats': 'Chats recientes',
+    'sidebar.myOrders': 'Mis pedidos',
+    'sidebar.favorites': 'Favoritos',
+    'sidebar.myAccount': 'Mi cuenta',
+    'sidebar.settings': 'Configuración',
+    'category.realEstate': 'Bienes Raíces',
+    'category.realEstateDesc': 'Compra, alquila e invierte en todo el mundo',
+    'category.automotive': 'Automoción',
+    'category.automotiveDesc': 'Encuentra tu coche de ensueño',
+    'category.trade': 'Comercio y Negocios',
+    'category.tradeDesc': 'Comercio B2B mundial',
+    'category.fashion': 'Moda y Textiles',
+    'category.fashionDesc': 'Mercado de moda premium',
+    'category.education': 'Educación',
+    'category.educationDesc': 'Cursos y certificados',
+    'category.liveChat': 'Chat en vivo',
+    'category.liveChatDesc': 'Habla con Aladdin ahora',
+    'nav.chat': 'Chat',
+    'nav.explore': 'Explorar',
+    'chat.greeting': '¡Hola! Soy Aladdin. ¿Cómo puedo ayudarte?',
+    'chat.askAnything': 'Pregúntame cualquier cosa',
+    'chat.placeholder': 'Pregúntale a Aladdin...',
+    'explore.title': 'Ecosistema GlobalBusiness',
+    'explore.subtitle': '25 aplicaciones Pi · Red Pi',
+    'settings.language': 'Idioma',
+    'settings.currency': 'Moneda',
+    'settings.darkMode': 'Modo oscuro',
+    'settings.notifications': 'Notificaciones'
+  },
+  zh: {
+    'header.title': '阿拉丁',
+    'header.subtitle': '• 全球商业',
+    'header.powered': '由 Pi 网络提供支持',
+    'sidebar.welcome': '欢迎用户',
+    'sidebar.member': '全球商业成员',
+    'sidebar.recentChats': '最近的聊天',
+    'sidebar.myOrders': '我的订单',
+    'sidebar.favorites': '收藏夹',
+    'sidebar.myAccount': '我的账户',
+    'sidebar.settings': '设置',
+    'category.realEstate': '房地产',
+    'category.realEstateDesc': '在全球范围内购买、租赁和投资',
+    'category.automotive': '汽车',
+    'category.automotiveDesc': '找到你梦想的车',
+    'category.trade': '贸易与商业',
+    'category.tradeDesc': '全球 B2B 商务',
+    'category.fashion': '时尚与纺织品',
+    'category.fashionDesc': '高级时尚市场',
+    'category.education': '教育',
+    'category.educationDesc': '课程和证书',
+    'category.liveChat': '实时聊天',
+    'category.liveChatDesc': '立即与阿拉丁交谈',
+    'nav.chat': '聊天',
+    'nav.explore': '探索',
+    'chat.greeting': '你好!我是阿拉丁。我今天能如何帮助你?',
+    'chat.askAnything': '问我任何事情',
+    'chat.placeholder': '问阿拉丁任何问题...',
+    'explore.title': '全球商业生态系统',
+    'explore.subtitle': '25 个 Pi 应用 · Pi 网络',
+    'settings.language': '语言',
+    'settings.currency': '货币',
+    'settings.darkMode': '暗模式',
+    'settings.notifications': '通知'
+  },
+  hi: {
+    'header.title': 'अलादीन',
+    'header.subtitle': '• वैश्विक व्यवसाय',
+    'header.powered': 'Pi नेटवर्क द्वारा संचालित',
+    'sidebar.welcome': 'स्वागत है',
+    'sidebar.member': 'GlobalBusiness सदस्य',
+    'sidebar.recentChats': 'हाल की चैट',
+    'sidebar.myOrders': 'मेरे ऑर्डर',
+    'sidebar.favorites': 'पसंदीदा',
+    'sidebar.myAccount': 'मेरा खाता',
+    'sidebar.settings': 'सेटिंग्स',
+    'category.realEstate': 'रियल एस्टेट',
+    'category.realEstateDesc': 'दुनिया भर में खरीदें, किराए पर लें और निवेश करें',
+    'category.automotive': 'ऑटोमोटिव',
+    'category.automotiveDesc': 'अपना सपनों की कार खोजें',
+    'category.trade': 'व्यापार और व्यवसाय',
+    'category.tradeDesc': 'वैश्विक B2B वाणिज्य',
+    'category.fashion': 'फैशन और कपड़े',
+    'category.fashionDesc': 'प्रीमियम फैशन बाजार',
+    'category.education': 'शिक्षा',
+    'category.educationDesc': 'पाठ्यक्रम और प्रमाणपत्र',
+    'category.liveChat': 'लाइव चैट',
+    'category.liveChatDesc': 'अभी अलादीन से बात करें',
+    'nav.chat': 'चैट',
+    'nav.explore': 'अन्वेषण करें',
+    'chat.greeting': 'नमस्ते! मैं अलादीन हूँ। मैं आपकी आज कैसे मदद कर सकता हूँ?',
+    'chat.askAnything': 'मुझसे कुछ भी पूछें',
+    'chat.placeholder': 'अलादीन से कोई सवाल पूछें...',
+    'explore.title': 'GlobalBusiness इकोसिस्टम',
+    'explore.subtitle': '25 Pi ऐप्स · Pi नेटवर्क',
+    'settings.language': 'भाषा',
+    'settings.currency': 'मुद्रा',
+    'settings.darkMode': 'डार्क मोड',
+    'settings.notifications': 'सूचनाएं'
+  },
+  tr: {
+    'header.title': 'ALADDİN',
+    'header.subtitle': '• KÜRESEL İŞLETME',
+    'header.powered': 'Pi Ağı tarafından desteklenmektedir',
+    'sidebar.welcome': 'Hoş geldiniz',
+    'sidebar.member': 'GlobalBusiness Üyesi',
+    'sidebar.recentChats': 'Son Sohbetler',
+    'sidebar.myOrders': 'Siparişlerim',
+    'sidebar.favorites': 'Favorilerim',
+    'sidebar.myAccount': 'Hesabım',
+    'sidebar.settings': 'Ayarlar',
+    'category.realEstate': 'Gayrimenkul',
+    'category.realEstateDesc': 'Dünya çapında satın alın, kiralayın ve yatırım yapın',
+    'category.automotive': 'Otomotiv',
+    'category.automotiveDesc': 'Rüya arabanda bul',
+    'category.trade': 'Ticaret ve İşletme',
+    'category.tradeDesc': 'Küresel B2B ticareti',
+    'category.fashion': 'Moda ve Tekstil',
+    'category.fashionDesc': 'Premium moda pazarı',
+    'category.education': 'Eğitim',
+    'category.educationDesc': 'Kurslar ve sertifikalar',
+    'category.liveChat': 'Canlı Sohbet',
+    'category.liveChatDesc': 'Şimdi Aladdin ile konuş',
+    'nav.chat': 'Sohbet',
+    'nav.explore': 'Keşfet',
+    'chat.greeting': 'Merhaba! Ben Aladdin. Bugün sana nasıl yardımcı olabilirim?',
+    'chat.askAnything': 'Bana her şeyi sor',
+    'chat.placeholder': 'Aladdin\'e bir soru sor...',
+    'explore.title': 'GlobalBusiness Ekosistemi',
+    'explore.subtitle': '25 Pi Uygulaması · Pi Ağı',
+    'settings.language': 'Dil',
+    'settings.currency': 'Para Birimi',
+    'settings.darkMode': 'Koyu Mod',
+    'settings.notifications': 'Bildirimler'
+  }
+};
+
+const I18nContext = createContext<I18nContextType | undefined>(undefined);
+
+export function I18nProvider({ children }: { children: React.ReactNode }) {
+  const [language, setLanguage] = useState<Language>('en');
+
+  const t = (key: string) => {
+    return translations[language][key] || translations['en'][key] || key;
+  };
+
+  const isRTL = language === 'ar' || language === 'he';
+
+  return (
+    <I18nContext.Provider value={{ language, setLanguage, t, isRTL }}>
+      {children}
+    </I18nContext.Provider>
+  );
+}
+
+export function useI18n() {
+  const context = useContext(I18nContext);
+  if (!context) {
+    throw new Error('useI18n must be used within I18nProvider');
+  }
+  return context;
+}
