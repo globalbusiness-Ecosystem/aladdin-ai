@@ -27,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script src="https://sdk.minepi.com/pi-sdk.js" />
         <style>{`
 html {
   font-family: ${GeistSans.style.fontFamily};
