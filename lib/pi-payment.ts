@@ -1,93 +1,40 @@
 "use client";
 
-import { usePiAuth } from "@/contexts/pi-auth-context";
-import type {
-  ConsumeResponse,
-  PurchaseResult,
-  PurchasesResponse,
-  RestoreOptions,
-  SDKLiteError,
-  UserPurchaseBalance,
-  UserStateRecord,
-} from "@/lib/sdklite-types";
-
-export type {
-  ConsumeResponse,
-  PurchaseResult,
-  PurchasesResponse,
-  RestoreOptions,
-  SDKLiteError,
-  UserPurchaseBalance,
-  UserStateRecord,
-};
-
 export function usePurchase() {
-  const { sdk } = usePiAuth();
+  const makePurchase = async (productId: string, amount: number, memo: string) => {
+    if (typeof window === "undefined" || !window.Pi) {
+      throw Object.assign(new Error("Pi Network not available"), { code: "pi_unavailable" });
+    }
 
-  const makePurchase = async (productId: string): Promise<PurchaseResult> => {
-    if (!sdk) throw new Error("SDK not initialized");
-    return sdk.makePurchase(productId);
+    return new Promise((resolve, reject) => {
+      window.Pi.createPayment(
+        { amount, memo, metadata: { productId } },
+        {
+          onReadyForServerApproval: async (paymentId: string) => {
+            await fetch("/api/pi/approve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId }),
+            });
+          },
+          onReadyForServerCompletion: async (paymentId: string, txid: string) => {
+            const res = await fetch("/api/pi/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ paymentId, txid }),
+            });
+            resolve({ ok: true, paymentId, txid });
+          },
+          onCancel: (paymentId: string) => {
+            reject(Object.assign(new Error("Cancelled"), { code: "purchase_cancelled" }));
+          },
+          onError: (error: any) => {
+            reject(Object.assign(new Error("Payment error"), { code: "purchase_error" }));
+          },
+        }
+      );
+    });
   };
 
   return { makePurchase };
-}
-
-export function useAds() {
-  const { sdk } = usePiAuth();
-
-  const isAdNetworkSupported = async (): Promise<boolean> => {
-    if (!sdk) return false;
-    return sdk.isAdNetworkSupported();
-  };
-
-  const showInterstitial = async (): Promise<boolean> => {
-    if (!sdk) return false;
-    return sdk.showInterstitial();
-  };
-
-  const showRewarded = async (productId: string): Promise<boolean> => {
-    if (!sdk) return false;
-    return sdk.showRewarded(productId);
-  };
-
-  return { isAdNetworkSupported, showInterstitial, showRewarded };
-}
-
-export function useUserState() {
-  const { sdk } = usePiAuth();
-
-  const get = async (key: string): Promise<UserStateRecord | null> => {
-    if (!sdk) throw new Error("SDK not initialized");
-    return sdk.state.get(key);
-  };
-
-  const set = async (
-    key: string,
-    blob: Record<string, unknown>
-  ): Promise<void> => {
-    if (!sdk) throw new Error("SDK not initialized");
-    return sdk.state.set(key, blob);
-  };
-
-  const purchases = async (): Promise<PurchasesResponse> => {
-    if (!sdk) throw new Error("SDK not initialized");
-    return sdk.state.purchases();
-  };
-
-  const consume = async (
-    productId: string,
-    quantity?: number
-  ): Promise<ConsumeResponse> => {
-    if (!sdk) throw new Error("SDK not initialized");
-    return sdk.state.consume(productId, quantity);
-  };
-
-  const restore = async (
-    options?: RestoreOptions
-  ): Promise<PurchasesResponse> => {
-    if (!sdk) throw new Error("SDK not initialized");
-    return sdk.state.restore(options);
-  };
-
-  return { get, set, purchases, consume, restore };
 }
