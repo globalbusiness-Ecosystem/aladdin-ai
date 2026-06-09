@@ -45,7 +45,7 @@ export function PaymentButton({
     setErrorMessage('');
 
     try {
-      const result = await makePurchase(productId);
+      const result = await makePurchase(productId, price, `Purchase ${productName}`);
       
       if (result.ok) {
         setStatus('success');
