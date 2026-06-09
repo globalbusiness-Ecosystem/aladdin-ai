@@ -32,6 +32,8 @@ export function PiAuthProvider({ children }: { children: ReactNode }) {
   const [isPiBrowser, setIsPiBrowser] = useState(false);
 
   const initialize = async () => {
+    // Wait for Pi SDK to load
+    await new Promise(resolve => setTimeout(resolve, 500));
     const hasPi = typeof window !== "undefined" && typeof window.Pi !== "undefined";
     setIsPiBrowser(hasPi);
 
