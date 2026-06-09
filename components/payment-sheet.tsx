@@ -23,7 +23,7 @@ interface PaymentSheetProps {
 }
 
 export function PaymentSheet({ isOpen, onClose, offers }: PaymentSheetProps) {
-  const [selectedOffer, setSelectedOffer] = useState<PaymentOffer | null>(null);
+
 
   const defaultOffers: PaymentOffer[] = [
     {
@@ -81,19 +81,16 @@ export function PaymentSheet({ isOpen, onClose, offers }: PaymentSheetProps) {
           </p>
         </SheetHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pb-4">
           {displayOffers.map((offer, idx) => (
-            <button
+            <div
               key={idx}
-              onClick={() => setSelectedOffer(offer)}
               className={`relative w-full bg-gradient-to-r ${
                 offer.highlight
                   ? 'from-[#D4AF37]/20 to-[#C49A2A]/10 border-[#D4AF37]/60'
                   : 'from-[#1A1A1A] to-[#0F0F0F] border-[#222222]'
               } border rounded-xl p-4 hover:border-[#D4AF37]/40 transition-all group overflow-hidden`}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#D4AF37]/5 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-
               <div className="relative z-10 text-left space-y-2">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1">
@@ -112,13 +109,11 @@ export function PaymentSheet({ isOpen, onClose, offers }: PaymentSheetProps) {
                       <p className="text-xs text-[#999999] mt-1">{offer.description}</p>
                     )}
                   </div>
-
                   <div className="text-right flex-shrink-0">
                     <p className="text-2xl font-bold text-[#D4AF37]">{offer.price}</p>
                     <p className="text-xs text-[#999999]">Pi</p>
                   </div>
                 </div>
-
                 {offer.features && offer.features.length > 0 && (
                   <div className="pt-2 border-t border-[#222222]">
                     <ul className="space-y-1">
@@ -131,34 +126,21 @@ export function PaymentSheet({ isOpen, onClose, offers }: PaymentSheetProps) {
                     </ul>
                   </div>
                 )}
+                <div className="pt-2">
+                  <PaymentButton
+                    productId={offer.productId}
+                    productName={offer.title}
+                    price={offer.price}
+                    onSuccess={() => setTimeout(() => onClose(), 1500)}
+                    className="w-full"
+                    size="md"
+                  />
+                </div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
-        {/* Confirmation Section */}
-        {selectedOffer && (
-          <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A] to-transparent p-4 border-t border-[#222222]">
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-white">{selectedOffer.title}</p>
-                <p className="text-xs text-[#999999] mt-0.5">
-                  {selectedOffer.price} Pi Network
-                </p>
-              </div>
-
-              <PaymentButton
-                productId={selectedOffer.productId}
-                productName={selectedOffer.title}
-                price={selectedOffer.price}
-                onSuccess={() => {
-                  setTimeout(() => onClose(), 1500);
-                }}
-                size="lg"
-              />
-            </div>
-          </div>
-        )}
       </SheetContent>
     </Sheet>
   );
